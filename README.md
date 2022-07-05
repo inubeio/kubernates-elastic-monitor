@@ -23,7 +23,8 @@
 ❯ kubectl create secret generic elasticsearch-master-credentials \
   --from-file=./username \
   --from-file=./password
-
+```
+```
 ❯ k describe secrets/elasticsearch-master-credentials
 Name:         elasticsearch-master-credentials
 Namespace:    elastic
@@ -101,6 +102,24 @@ service/kibana created
 
 ```
 ❯ kubectl get pods  -l app=kibana
+NAME                      READY   STATUS    RESTARTS   AGE
+kibana-84fbd79c4c-vmngw   1/1     Running   0          12m
+```
+- if all pods are in Running state then we can port-forward kibana using `kubectl port-forward service/kibana 5601` and open url http://localhost:5601
+
+## 3. LOGSTASH
+- Apply and validate Logstash
+```
+❯ k apply -f logstash
+configmap/logstash-config created
+configmap/logstash-pipeline created
+poddisruptionbudget.policy/logstash-pdb created
+service/logstash-headless created
+statefulset.apps/logstash created
+```
+
+```
+❯ kubectl get pods  -l app=logstash
 NAME                      READY   STATUS    RESTARTS   AGE
 kibana-84fbd79c4c-vmngw   1/1     Running   0          12m
 ```

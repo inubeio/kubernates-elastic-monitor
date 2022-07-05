@@ -1,0 +1,12 @@
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: "logstash-pdb"
+  labels:
+    app: "logstash"
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: "logstash"

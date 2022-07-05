@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  labels:
+    app: "logstash"
+data:
+  logstash.yml: |
+    http.host: 0.0.0.0
+    xpack.monitoring.enabled: true
+    xpack.monitoring.elasticsearch.username: '${ELASTICSEARCH_USERNAME}'
+    xpack.monitoring.elasticsearch.password: '${ELASTICSEARCH_PASSWORD}'
+    xpack.monitoring.elasticsearch.hosts: ["https://elasticsearch-master:9200"]
+    xpack.monitoring.elasticsearch.ssl.certificate_authority: /usr/share/logstash/config/certs/ca.crt
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline
+  labels:
+    app: "logstash"
+data:
+  uptime.conf: |
+    input { exec { command => "uptime" interval => 30 } }
+    output { elasticsearch {
+      hosts => ["https://elasticsearch-master:9200"]
+      cacert => "/usr/share/logstash/config/certs/tls.crt"
+      user => '${ELASTICSEARCH_USERNAME}'
+      password => '${ELASTICSEARCH_PASSWORD}'
+      index => "logstash"
+      }
+    }
