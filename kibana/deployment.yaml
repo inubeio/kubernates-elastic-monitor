@@ -24,7 +24,7 @@ spec:
       securityContext:
         fsGroup: 1000
       volumes:
-        - name: elastic-certificate-pem
+        - name: elasticsearch-master-certs
           secret:
             secretName: elasticsearch-master-certs
         - name: kibanaconfig
@@ -67,7 +67,7 @@ spec:
             cpu: 100m
             memory: 512Mi
         volumeMounts:
-          - name: elastic-certificate-pem
+          - name: elasticsearch-master-certs
             mountPath: /usr/share/kibana/config/certs/
           - name: kibanaconfig
             mountPath: /usr/share/kibana/config/kibana.yml

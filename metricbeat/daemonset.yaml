@@ -2,63 +2,61 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: filebeat
+  name: metricbeat
   labels:
-    app: "filebeat"
+    app: "metricbeat"
 spec:
   selector:
     matchLabels:
-      app: "filebeat"
+      app: "metricbeat"
   updateStrategy:
-    rollingUpdate:
-      maxUnavailable: 1
     type: RollingUpdate
   template:
     metadata:
       annotations:
-        
-        configChecksum: 92055991ca973321ddd26a65571c0d863978a6a775732206a941e8194db57b5
-      name: "filebeat"
-      labels:
-        app: "filebeat"
-    spec:
-      tolerations: 
-        []
-      nodeSelector: 
         {}
+      name: "metricbeat"
+      labels:
+        app: "metricbeat"
+    spec:
       affinity: 
         {}
-      serviceAccountName: filebeat
+      nodeSelector: 
+        {}
+      tolerations: 
+        []
+      serviceAccountName: metricbeat
       terminationGracePeriodSeconds: 30
       volumes:
       - name: elasticsearch-master-certs
         secret:
           secretName: elasticsearch-master-certs
-      - name: filebeat-config
+      - name: metricbeat-config
         configMap:
           defaultMode: 0600
-          name: filebeat-daemonset-config
+          name: metricbeat-daemonset-config
       - name: data
         hostPath:
-          path: /var/lib/filebeat-elastic-data
+          path: /var/lib/metricbeat-elastic-data
           type: DirectoryOrCreate
-      - name: varlibdockercontainers
-        hostPath:
-          path: /var/lib/docker/containers
-      - name: varlog
-        hostPath:
-          path: /var/log
       - name: varrundockersock
         hostPath:
           path: /var/run/docker.sock
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: cgroup
+        hostPath:
+          path: /sys/fs/cgroup
       containers:
-      - name: "filebeat"
-        image: "docker.elastic.co/beats/filebeat:8.1.0"
+      - name: "metricbeat"
+        image: "docker.elastic.co/beats/metricbeat:8.1.0"
         imagePullPolicy: "IfNotPresent"
         args:
         - "-e"
         - "-E"
         - "http.enabled=true"
+        - "--system.hostfs=/hostfs"
         livenessProbe:
           exec:
             command:
@@ -78,12 +76,12 @@ spec:
             - -c
             - |
               #!/usr/bin/env bash -e
-              filebeat test output
+              metricbeat test output
           failureThreshold: 3
           initialDelaySeconds: 10
           periodSeconds: 10
           timeoutSeconds: 5
-        resources:
+        resources: 
           limits:
             cpu: 1000m
             memory: 200Mi
@@ -99,8 +97,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        - name: ELASTICSEARCH_HOSTS
-          value: elasticsearch-master:9200
         - name: ELASTICSEARCH_USERNAME
           valueFrom:
             secretKeyRef:
@@ -118,21 +114,19 @@ spec:
           runAsUser: 0
         volumeMounts:
         - name: elasticsearch-master-certs
-          mountPath: /usr/share/filebeat/config/certs
-        - name: filebeat-config
-          mountPath: /usr/share/filebeat/filebeat.yml
+          mountPath: /usr/share/metricbeat/config/certs
+        - name: metricbeat-config
+          mountPath: /usr/share/metricbeat/metricbeat.yml
           readOnly: true
-          subPath: filebeat.yml
+          subPath: metricbeat.yml
         - name: data
-          mountPath: /usr/share/filebeat/data
-        - name: varlibdockercontainers
-          mountPath: /var/lib/docker/containers
-          readOnly: true
-        - name: varlog
-          mountPath: /var/log
-          readOnly: true
-        # Necessary when using autodiscovery; avoid mounting it otherwise
-        # See: https://www.elastic.co/guide/en/beats/filebeat/master/configuration-autodiscover.html
+          mountPath: /usr/share/metricbeat/data
         - name: varrundockersock
           mountPath: /var/run/docker.sock
+          readOnly: true
+        - name: proc
+          mountPath: /hostfs/proc
+          readOnly: true
+        - name: cgroup
+          mountPath: /hostfs/sys/fs/cgroup
           readOnly: true

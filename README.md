@@ -110,7 +110,7 @@ kibana-84fbd79c4c-vmngw   1/1     Running   0          12m
 ## 3. LOGSTASH
 - Apply and validate Logstash
 ```
-❯ k apply -f logstash
+❯ kubectl apply -f logstash
 configmap/logstash-config created
 configmap/logstash-pipeline created
 poddisruptionbudget.policy/logstash-pdb created
@@ -126,7 +126,14 @@ kibana-84fbd79c4c-vmngw   1/1     Running   0          12m
 ## 4. FILEBET
 - Apply and validate FileBeat
 ```
-❯ k apply -f filebeat
+❯ kubectl apply -f filebeat
+configmap/filebeat-daemonset-config created
+daemonset.apps/filebeat created
+clusterrole.rbac.authorization.k8s.io/filebeat-cluster-role created
+clusterrolebinding.rbac.authorization.k8s.io/filebeat-cluster-role-binding created
+role.rbac.authorization.k8s.io/filebeat-role created
+rolebinding.rbac.authorization.k8s.io/filebeat-role-binding created
+serviceaccount/filebeat created
 ```
 
 ```
@@ -135,5 +142,42 @@ kibana-84fbd79c4c-vmngw   1/1     Running   0          12m
 ## 5. Kube-State-Metrics ( Metricbeat dependency)
 - Apply and validate FileBeat
 ```
-❯ k apply -f kube-state-metrics -n kube-system
+❯ kubectl apply -f kube-state-metrics -n kube-system
+clusterrolebinding.rbac.authorization.k8s.io/kube-state-metrics created
+clusterrole.rbac.authorization.k8s.io/kube-state-metrics created
+deployment.apps/kube-state-metrics created
+serviceaccount/kube-state-metrics created
+service/kube-state-metrics created
+```
+- Create Dahboards of filebeat (optional)
+```
+❯ kubectl exec -it pod/metricbeat-metrics-779489d9df-zj7rb -- bash
+
+# filebeat setup --dashboards \
+  -E setup.kibana.host=kibana:5601 \
+  -E setup.kibana.username=elastic \
+  -E setup.kibana.password=<password>
+```
+
+## 5. METRICBEAT
+- Apply and validate metricbeat
+```
+❯ kubectl apply -f metricbeat
+configmap/metricbeat-daemonset-config created
+configmap/metricbeat-deployment-config created
+daemonset.apps/metricbeat created
+deployment.apps/metricbeat-metrics created
+clusterrole.rbac.authorization.k8s.io/metricbeat-cluster-role created
+role.rbac.authorization.k8s.io/metricbeat-role created
+rolebinding.rbac.authorization.k8s.io/metricbeat-role-binding created
+serviceaccount/metricbeat created
+```
+- Create Dahboards of metricbeat
+```
+❯ kubectl exec -it pod/metricbeat-metrics-779489d9df-zj7rb -- bash
+
+# metricbeat setup --dashboards \
+  -E setup.kibana.host=kibana:5601 \
+  -E setup.kibana.username=elastic \
+  -E setup.kibana.password=<password>
 ```

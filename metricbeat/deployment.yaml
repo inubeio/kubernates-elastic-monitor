@@ -1,0 +1,103 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 'metricbeat-metrics'
+  labels:
+    app: 'metricbeat-metrics'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 'metricbeat-metrics'
+  template:
+    metadata:
+      annotations:
+        {}
+      labels:
+        app: 'metricbeat-metrics'
+    spec:
+      affinity: 
+        {}
+      nodeSelector: 
+        {}
+      tolerations: 
+        []
+      serviceAccountName: metricbeat
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: elasticsearch-master-certs
+        secret:
+          secretName: elasticsearch-master-certs
+      - name: metricbeat-config
+        configMap:
+          defaultMode: 0600
+          name: metricbeat-deployment-config
+      containers:
+      - name: "metricbeat"
+        image: "docker.elastic.co/beats/metricbeat:8.1.0"
+        imagePullPolicy: "IfNotPresent"
+        args:
+          - "-e"
+          - "-E"
+          - "http.enabled=true"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - |
+              #!/usr/bin/env bash -e
+              curl --fail 127.0.0.1:5066
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - |
+              #!/usr/bin/env bash -e
+              metricbeat test output
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources: 
+          limits:
+            cpu: 1000m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KUBE_STATE_METRICS_HOSTS
+          value: kube-state-metrics.kube-system.svc.cluster.local:8080
+        - name: ELASTICSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: elasticsearch-master-credentials
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: elasticsearch-master-credentials
+        envFrom: 
+          []
+        securityContext: 
+          privileged: false
+          runAsUser: 0
+        volumeMounts:
+        - name: elasticsearch-master-certs
+          mountPath: /usr/share/metricbeat/config/certs
+        - name: metricbeat-config
+          mountPath: /usr/share/metricbeat/metricbeat.yml
+          readOnly: true
+          subPath: metricbeat.yml
