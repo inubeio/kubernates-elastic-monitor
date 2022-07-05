@@ -123,3 +123,17 @@ statefulset.apps/logstash created
 NAME                      READY   STATUS    RESTARTS   AGE
 kibana-84fbd79c4c-vmngw   1/1     Running   0          12m
 ```
+## 4. FILEBET
+- Apply and validate FileBeat
+```
+❯ k apply -f filebeat
+```
+
+```
+❯ kubectl get pods  -l app=filebeat
+```
+## 5. Kube-State-Metrics ( Metricbeat dependency)
+- Apply and validate FileBeat
+```
+❯ k apply -f kube-state-metrics -n kube-system
+```

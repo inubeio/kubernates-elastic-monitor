@@ -88,11 +88,11 @@ spec:
           containerPort: 9600
         resources:
           limits:
-            cpu: 1000m
-            memory: 1536Mi
+            cpu: 100m
+            memory: 512Mi
           requests:
             cpu: 100m
-            memory: 1536Mi
+            memory: 512Mi
         env:
           - name: LS_JAVA_OPTS
             value: "-Xmx1g -Xms1g"
