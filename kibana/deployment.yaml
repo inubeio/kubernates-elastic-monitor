@@ -1,0 +1,74 @@
+---
+# Source: kibana/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  labels: 
+    app: kibana
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+      annotations:
+        {}
+    spec:
+      automountServiceAccountToken: true
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: elastic-certificate-pem
+          secret:
+            secretName: elasticsearch-master-certs
+        - name: kibanaconfig
+          configMap:
+            name: kibana-config
+      containers:
+      - name: kibana
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+        image: "docker.elastic.co/kibana/kibana:8.1.0"
+        imagePullPolicy: "IfNotPresent"
+        env:
+          - name: SERVER_NAME
+            value: kibana
+          - name: ELASTICSEARCH_HOSTS
+            value: "https://elasticsearch-master:9200"
+          - name: SERVER_HOST
+            value: "0.0.0.0"
+          - name: KIBANA_ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                key: encryptionkey
+                name: kibana
+          - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+            valueFrom:
+              secretKeyRef:
+                key: serviceAccountToken
+                name: kibana
+        ports:
+        - containerPort: 5601
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+          - name: elastic-certificate-pem
+            mountPath: /usr/share/kibana/config/certs/
+          - name: kibanaconfig
+            mountPath: /usr/share/kibana/config/kibana.yml
+            subPath: kibana.yml
