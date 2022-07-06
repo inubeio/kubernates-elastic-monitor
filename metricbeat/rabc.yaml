@@ -5,6 +5,7 @@ metadata:
   name: metricbeat-cluster-role
   labels:
     app: "metricbeat"
+    release: "metricbeat"
 rules: 
   - apiGroups:
     - ""
@@ -52,6 +53,37 @@ rules:
     - /metrics
     verbs:
     - get
+  - apiGroups:
+      - ""
+      - "apps"
+      - "batch"
+    resources:
+      - endpoints
+      - deployments
+      - pods
+      - jobs
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metricbeat-cluster-role-binding
+  labels:
+    app: "metricbeat"
+    release: "metricbeat"
+roleRef:
+  kind: ClusterRole
+  name: metricbeat-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: metricbeat
+  namespace: elastic
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -72,9 +104,10 @@ metadata:
   name: metricbeat-role-binding
   labels:
     app: "metricbeat"
+    chart: "metricbeat-8.1.0"
 roleRef:
   kind: ClusterRole
-  name: metricbeat-metricbeat-role
+  name: metricbeat-role
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount

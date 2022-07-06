@@ -7,7 +7,7 @@
 ## Setup namespace for elastic stack
 ``` 
 ❯ kubectl create ns elastic
-❯ kubens elastic << This will change tje name space to elastic and all the command execurte after this will run under elastic namespace
+❯ kubens elastic << This will change the name space to elastic and all the command execurte after this will run under elastic namespace
 ```
 
 ## 1. ELATICSEARCH
@@ -123,7 +123,7 @@ statefulset.apps/logstash created
 NAME                      READY   STATUS    RESTARTS   AGE
 kibana-84fbd79c4c-vmngw   1/1     Running   0          12m
 ```
-## 4. FILEBET
+## 4. FILEBEAT
 - Apply and validate FileBeat
 ```
 ❯ kubectl apply -f filebeat
@@ -139,26 +139,6 @@ serviceaccount/filebeat created
 ```
 ❯ kubectl get pods  -l app=filebeat
 ```
-## 5. Kube-State-Metrics ( Metricbeat dependency)
-- Apply and validate FileBeat
-```
-❯ kubectl apply -f kube-state-metrics -n kube-system
-clusterrolebinding.rbac.authorization.k8s.io/kube-state-metrics created
-clusterrole.rbac.authorization.k8s.io/kube-state-metrics created
-deployment.apps/kube-state-metrics created
-serviceaccount/kube-state-metrics created
-service/kube-state-metrics created
-```
-- Create Dahboards of filebeat (optional)
-```
-❯ kubectl exec -it pod/metricbeat-metrics-779489d9df-zj7rb -- bash
-
-# filebeat setup --dashboards \
-  -E setup.kibana.host=kibana:5601 \
-  -E setup.kibana.username=elastic \
-  -E setup.kibana.password=<password>
-```
-
 ## 5. METRICBEAT
 - Apply and validate metricbeat
 ```
@@ -166,8 +146,14 @@ service/kube-state-metrics created
 configmap/metricbeat-daemonset-config created
 configmap/metricbeat-deployment-config created
 daemonset.apps/metricbeat created
-deployment.apps/metricbeat-metrics created
+deployment.apps/metricbeat created
+serviceaccount/metricbeat-kube-state-metrics created
+clusterrole.rbac.authorization.k8s.io/metricbeat-kube-state-metrics created
+clusterrolebinding.rbac.authorization.k8s.io/metricbeat-kube-state-metrics created
+service/metricbeat-kube-state-metrics created
+deployment.apps/metricbeat-kube-state-metrics created
 clusterrole.rbac.authorization.k8s.io/metricbeat-cluster-role created
+clusterrolebinding.rbac.authorization.k8s.io/metricbeat-cluster-role-binding created
 role.rbac.authorization.k8s.io/metricbeat-role created
 rolebinding.rbac.authorization.k8s.io/metricbeat-role-binding created
 serviceaccount/metricbeat created

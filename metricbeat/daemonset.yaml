@@ -5,10 +5,12 @@ metadata:
   name: metricbeat
   labels:
     app: "metricbeat"
+    release: "metricbeat"
 spec:
   selector:
     matchLabels:
       app: "metricbeat"
+      release: "metricbeat"
   updateStrategy:
     type: RollingUpdate
   template:
@@ -18,6 +20,7 @@ spec:
       name: "metricbeat"
       labels:
         app: "metricbeat"
+        release: "metricbeat"
     spec:
       affinity: 
         {}
@@ -121,6 +124,8 @@ spec:
           subPath: metricbeat.yml
         - name: data
           mountPath: /usr/share/metricbeat/data
+        # Necessary when using autodiscovery; avoid mounting it otherwise
+        # See: https://www.elastic.co/guide/en/beats/metricbeat/master/configuration-autodiscover.html
         - name: varrundockersock
           mountPath: /var/run/docker.sock
           readOnly: true

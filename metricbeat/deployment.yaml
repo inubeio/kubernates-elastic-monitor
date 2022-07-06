@@ -1,21 +1,25 @@
 ---
+# Source: metricbeat/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: 'metricbeat-metrics'
+  name: 'metricbeat'
   labels:
-    app: 'metricbeat-metrics'
+    app: 'metricbeat'
+    release: 'metricbeat'
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: 'metricbeat-metrics'
+      app: 'metricbeat'
+      release: 'metricbeat'
   template:
     metadata:
       annotations:
         {}
       labels:
-        app: 'metricbeat-metrics'
+        app: 'metricbeat'
+        release: 'metricbeat'
     spec:
       affinity: 
         {}
@@ -78,7 +82,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: KUBE_STATE_METRICS_HOSTS
-          value: kube-state-metrics.kube-system.svc.cluster.local:8080
+          value: "$(METRICBEAT_KUBE_STATE_METRICS_SERVICE_HOST):$(METRICBEAT_KUBE_STATE_METRICS_SERVICE_PORT_HTTP)"
         - name: ELASTICSEARCH_USERNAME
           valueFrom:
             secretKeyRef:

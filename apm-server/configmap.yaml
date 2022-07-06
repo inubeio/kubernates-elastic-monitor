@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-server-config
+  labels:
+    app: "apm-server"
+data:
+  apm-server.yml: |
+    apm-server:
+      host: "0.0.0.0:8200"
+    queue: {}
+    output.elasticsearch:
+      username: '${ELASTICSEARCH_USERNAME}'
+      password: '${ELASTICSEARCH_PASSWORD}'
+      protocol: https
+      hosts: ["elasticsearch-master:9200"]
+      ssl.certificate_authorities:
+        - /usr/share/apm-server/config/certs/ca.crt
