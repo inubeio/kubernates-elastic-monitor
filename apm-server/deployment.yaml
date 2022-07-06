@@ -37,7 +37,6 @@ spec:
         image: "docker.elastic.co/apm/apm-server:8.1.0"
         imagePullPolicy: "IfNotPresent"
         env:
-          
           - name: ELASTICSEARCH_USERNAME
             valueFrom:
               secretKeyRef:

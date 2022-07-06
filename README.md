@@ -167,3 +167,18 @@ serviceaccount/metricbeat created
   -E setup.kibana.username=elastic \
   -E setup.kibana.password=<password>
 ```
+## 5. HEARTBEAT
+- Apply and validate heartbeat
+```
+❯ kubectl apply -f heartbeat
+configmap/heartbeat-deployment-config created
+deployment.apps/heartbeat created
+clusterrolebinding.rbac.authorization.k8s.io/heartbeat created
+rolebinding.rbac.authorization.k8s.io/heartbeat created
+rolebinding.rbac.authorization.k8s.io/heartbeat-kubeadm-config created
+clusterrole.rbac.authorization.k8s.io/heartbeat created
+role.rbac.authorization.k8s.io/heartbeat created
+role.rbac.authorization.k8s.io/heartbeat-kubeadm-config created
+serviceaccount/heartbeat created
+```
+

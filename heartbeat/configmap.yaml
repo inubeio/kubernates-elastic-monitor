@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: heartbeat-deployment-config
+  namespace: elastic
+  labels:
+    k8s-app: heartbeat
+data:
+  heartbeat.yml: |-
+    heartbeat.monitors:
+    - type: http 
+      id: google
+      name: Google
+      schedule: '@every 30s' # every 5 seconds from start of beat
+      urls: ["https://google.coml"]
+      ipv4: true
+      ipv6: true
+      mode: any
+      tags: ["Website", "URL"]
+      
+    heartbeat.autodiscover:
+     # Autodiscover pods
+     providers:
+       - type: kubernetes
+         resource: pod
+         scope: cluster
+         node: ${NODE_NAME}
+         hints.enabled: true
+    
+     # Autodiscover services
+     providers:
+       - type: kubernetes
+         resource: service
+         scope: cluster
+         node: ${NODE_NAME}
+         hints.enabled: true
+    
+     # Autodiscover nodes
+     providers:
+       - type: kubernetes
+         resource: node
+         node: ${NODE_NAME}
+         scope: cluster
+         templates:
+           # Example, check SSH port of all cluster nodes:
+           - condition: ~
+             config:
+               - hosts:
+                   - ${data.host}:22
+                 name: ${data.kubernetes.node.name}
+                 schedule: '@every 10s'
+                 timeout: 5s
+                 type: tcp
+
+    processors:
+      - add_observer_metadata:
+          netinfo.enabled: false
+          geo:
+            name: US
+            region_iso_code: NY
+      
+
+    output.elasticsearch:
+      username: '${ELASTICSEARCH_USERNAME}'
+      password: '${ELASTICSEARCH_PASSWORD}'
+      protocol: https
+      hosts: ["elasticsearch-master:9200"]
+      ssl.certificate_authorities:
+        - /usr/share/heartbeat/config/certs/ca.crt
